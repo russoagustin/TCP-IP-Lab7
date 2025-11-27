@@ -14,19 +14,8 @@
 
 int scan_host(const char *ip, int family);
 int validarIP(const char *ip);
+int ingresar_red(char *network, size_t net_size){
 
-
-
-
-
-
-/**
- * Función que solicita al usuario ingresar una dirección IP (IPv4 o IPv6).
- * Valida la dirección IP ingresada.
- * Retorna 4 si es IPv4 o 6 si es IPv6
- */
-void escanear_red() {
-   char network[MAX_IP_STR_LEN];
     int ip_version;
 
     printf("===== ESCÁNER DE SERVIDORES WEB (Puerto 80) =====\n");
@@ -40,7 +29,7 @@ void escanear_red() {
 
         if (scanf("%45s", network) != 1) {
             fprintf(stderr, "Error leyendo entrada.\n");
-            return;
+            return 0;
         }
 
         if (strchr(network, '.')) {
@@ -72,7 +61,7 @@ void escanear_red() {
             }
 
             /* Normalizar a A.B.C.0 */
-            snprintf(network, sizeof(network), "%u.%u.%u.0", b1, b2, b3);
+            snprintf(network, net_size, "%u.%u.%u.0", b1, b2, b3);
         } else {
             /* IPv6: exactamente 4 hextetos h1:h2:h3:h4 */
             unsigned int h1, h2, h3, h4;
@@ -102,7 +91,7 @@ void escanear_red() {
             }
 
             /* Normalizar a prefijo /64: h1:h2:h3:h4:: */
-            snprintf(network, sizeof(network), "%x:%x:%x:%x::", h1, h2, h3, h4);
+            snprintf(network, net_size, "%x:%x:%x:%x::", h1, h2, h3, h4);
         }
 
         ip_version = validarIP(network);
@@ -111,6 +100,16 @@ void escanear_red() {
         }
 
     } while (ip_version == 0);
+
+    return ip_version;
+}
+
+
+void escanear_red() {
+   char network[MAX_IP_STR_LEN];
+    int ip_version = ingresar_red(network, sizeof(network));
+
+    printf("===== ESCÁNER DE SERVIDORES WEB (Puerto 80) =====\n");
 
     /* ------------------------ ESCANEO IPv4 ------------------------ */
     if (ip_version == 4) {
@@ -226,6 +225,28 @@ int scan_host(const char *ip, int family) {
     setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
     ret = connect(sockfd, res->ai_addr, res->ai_addrlen);
+
+    if (ret == 0) {
+
+        // Consulta HTTP 
+        const char *http_get = "GET / HTTP/1.1\r\nHost: test\r\n\r\n";
+
+        ssize_t sent = send(sockfd, http_get, strlen(http_get), 0);
+
+        if (sent > 0) {
+            char buffer[512];
+            ssize_t received = recv(sockfd, buffer, sizeof(buffer)-1, 0);
+            if (received > 0) {
+                buffer[received] = '\0';
+                // Verifica si la respuesta contiene "HTTP/"
+                if (strstr(buffer, "HTTP/") != NULL) {
+                    close(sockfd);
+                    freeaddrinfo(res);
+                    return 1; // Es un servidor web
+                }
+            }
+        }
+    }
 
     close(sockfd);
     freeaddrinfo(res);

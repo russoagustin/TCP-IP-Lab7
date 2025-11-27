@@ -5,7 +5,7 @@
 #define MAX_IP_STR_LEN 46 
 #define IPV4 4
 #define IPV6 6
-#define HTTP_PORT "80" 
+#define HTTP_PORT "8080" 
 
 void escanear_red();
 
