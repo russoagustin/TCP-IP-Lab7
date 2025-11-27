@@ -1,8 +1,12 @@
 #ifndef TCPIP_H
 #define TCPIP_H
 
-int ingresarIP(char **ip);
-void *buscarServidoresWeb(const char *ip);
+#define TIMEOUT_SEC 1
+#define MAX_IP_STR_LEN 46 
+#define IPV4 4
+#define IPV6 6
+#define HTTP_PORT "80" 
 
+void escanear_red();
 
 #endif

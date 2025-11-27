@@ -6,7 +6,6 @@
 
 int main(int argc, char *argv[]){
     
-    char *ip;
     int op=0;
 
     while (op != 2)
@@ -24,8 +23,7 @@ int main(int argc, char *argv[]){
         switch (op)
         {
             case 1:
-                ingresarIP(&ip);
-                printf("Ip ingresada: %s\n",ip);
+                escanear_red();
                 while (getchar() != '\n');
                 break;
             case 2:
@@ -36,7 +34,6 @@ int main(int argc, char *argv[]){
         }
     }
 
-    free(ip);
 
     return 0;
 }
