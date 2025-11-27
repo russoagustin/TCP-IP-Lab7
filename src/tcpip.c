@@ -12,8 +12,14 @@
 
 
 
-int scan_host(const char *ip, int family);
+int verificar_serv(const char *ip, int family);
 int validarIP(const char *ip);
+
+/*
+ * Función para ingreso de dirección de red
+ * Devuelve 4 si es IPv4
+ * Devuelve 6 si es IPv6
+ */
 int ingresar_red(char *network, size_t net_size){
 
     int ip_version;
@@ -104,7 +110,9 @@ int ingresar_red(char *network, size_t net_size){
     return ip_version;
 }
 
-
+/*
+ *Itera por todos los host de la subred en busqueda de servidores web
+*/
 void escanear_red() {
    char network[MAX_IP_STR_LEN];
     int ip_version = ingresar_red(network, sizeof(network));
@@ -136,7 +144,7 @@ void escanear_red() {
                 continue;
             }
 
-            if (scan_host(ip_str, AF_INET))
+            if (verificar_serv(ip_str, AF_INET))
                 printf("[+] %s --> SERVIDOR WEB ACTIVO\n", ip_str);
             else
                 printf("[-] %s --> No responde\n", ip_str);
@@ -165,7 +173,7 @@ void escanear_red() {
                 continue;
             }
 
-            if (scan_host(ip_str, AF_INET6))
+            if (verificar_serv(ip_str, AF_INET6))
                 printf("[+] %s --> SERVIDOR WEB ACTIVO\n", ip_str);
             else
                 printf("[-] %s --> No responde\n", ip_str);
@@ -198,7 +206,13 @@ int validarIP(const char *ip) {
     return 0; 
 }
 
-int scan_host(const char *ip, int family) {
+
+/*
+ * Función determina si una dirección ip tiene un servidor web escuchando en el puerto 80
+ * Intenta hacer un connect, si no puede => No hay servidor
+ * Si pudo hacer el connect manda una petición GET, si la respuesta contiene HTTP => Hay un servidor web, de lo contrario no lo hay.
+ */
+int verificar_serv(const char *ip, int family) {
     struct addrinfo hints, *res;
     int sockfd, ret;
     struct timeval tv;
